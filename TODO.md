@@ -4,8 +4,3 @@
 - Datasheet for PIR sensor.
 - Cite source: design docs online where I started.
 - More `/README.md` documentation.
-
-# Questions
-
-- Voltage regulated to 3.3V
-- Analog Output
