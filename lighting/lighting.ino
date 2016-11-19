@@ -4,6 +4,7 @@
 // Digital output
 int pirPin = 2;
 int pirValue;
+int lastPirValue = LOW;
 
 // Baud rate in Serial Monitor
 int baudRate = 9600;
@@ -19,12 +20,13 @@ void setup() {
 
 void loop() {
   pirValue = digitalRead(pirPin);
-  if (pirValue == LOW) {
-    Serial.println("Detection! *beep boop*");
-  }
-  else {
+  if (pirValue == LOW && lastPirValue == HIGH) {
     Serial.println("Waiting...");
   }
-  delay(1000);
+  else if (pirValue == HIGH && lastPirValue == LOW) {
+    Serial.println("Detection! *beep boop*");
+  }
+  lastPirValue = pirValue;
+  delay(100);
 }
 
