@@ -1,4 +1,7 @@
 
+#define MS_DELAY_INACTIVE 500   // 1/2 second
+#define MS_DELAY_ACTIVE   1000 //  1 seconds
+
 // Component: HC-SR501
 // PIR = Passive Infrared sensor
 // Digital output
@@ -12,6 +15,9 @@ int ledPin = 13;
 // Baud rate in Serial Monitor
 int baudRate = 9600;
 
+// Milliseconds since last detection
+unsigned long millisLastDetected = 0;
+
 void setup() {
   pinMode(pirPin, INPUT);
   pinMode(ledPin, OUTPUT);
@@ -23,17 +29,19 @@ void setup() {
 }
 
 void loop() {
+  // detect motion
   pirValue = digitalRead(pirPin);
-  if (pirValue == LOW && lastPirValue == HIGH) {
+  if (pirValue == LOW) {
     Serial.println("Waiting...");
     digitalWrite(ledPin, LOW);
-    
-  }
-  else if (pirValue == HIGH && lastPirValue == LOW) {
+    delay(MS_DELAY_INACTIVE);
+  } else {
     Serial.println("Detection! *beep boop*");
     digitalWrite(ledPin, HIGH);
+    delay(MS_DELAY_ACTIVE);
   }
-  lastPirValue = pirValue;
-  delay(100);
+
 }
+
+
 
