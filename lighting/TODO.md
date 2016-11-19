@@ -1,5 +1,5 @@
 
 # TODO
 
-- Datasheet for PIR sensor
--
+- Datasheet for PIR sensor.
+- Cite source: design docs online where I started.
