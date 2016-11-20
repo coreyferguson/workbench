@@ -1,7 +1,4 @@
 
-#define MS_DELAY_INACTIVE 50   // 1/2 second
-#define MS_DELAY_ACTIVE   1000 //  1 seconds
-
 #define BAUD_RATE 9600
 
 #define LOOP_DELAY_ACTIVE    10
@@ -12,13 +9,15 @@
 // PIR = Passive Infrared sensor
 // Digital output
 #define PIN_PIR  2
-int dimmerValue = 0;
+unsigned int lastMotionDetectionMs = 0;
 
 // Dimmer
 #define PIN_POT 0
+int dimmerValue = 0;
 
 // Light
 #define PIN_LED 9
+#define LIGHT_ON_MIN_DURATION 300000 // 5 minutes
 bool lightOn = false;
 
 void setup() {
@@ -32,36 +31,39 @@ void setup() {
 void loop() {
   getMotionValue();
   getDimmerValue();
-  printState();
   outputState();
   delayState();
 }
 
 void getMotionValue() {
   static int pirValue;
-  static int lastPirValue = LOW;
+  static int duration = 0;
+
   pirValue = digitalRead(PIN_PIR);
-  if (pirValue == LOW) {
-    lightOn = false;
-  } else if (pirValue == HIGH) {
-    lightOn = true;
+
+  // turn light off
+  if (lightOn && pirValue == LOW) {
+    duration = abs(millis() - lastMotionDetectionMs);
+    if (duration > LIGHT_ON_MIN_DURATION) {
+      lightOn = false;
+      Serial.println("Lights out.");
+    }
   }
+
+  // turn light on
+  else if (pirValue == HIGH) {
+    lastMotionDetectionMs = millis();
+    if (!lightOn) {
+      lightOn = true;
+      Serial.println("Motion detected! *beep boop*");
+
+    }
+  }
+
 }
 
 void getDimmerValue() {
   dimmerValue = analogRead(PIN_POT);
-}
-
-/**
- * Print state to serial monitor.
- */
-void printState() {
-  if (lightOn) {
-    Serial.println("Lights on");
-  } else {
-    Serial.println("Lights off");
-  }
-  Serial.println(dimmerValue, DEC);
 }
 
 /**
@@ -87,6 +89,8 @@ void delayState() {
     delay(LOOP_DELAY_INACTIVE);
   }
 }
+
+
 
 
 
