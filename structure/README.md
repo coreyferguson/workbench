@@ -14,3 +14,8 @@ The `*.fcstd` files can be opened with [FreeCAD](http://www.freecadweb.org/).
 
 TODO
 
+## References
+
+- [The Family Handyman][]
+
+[The Family Handyman]: http://www.familyhandyman.com/workshop/workbench/how-to-build-a-workbench-super-simple-50-bench/view-all
