@@ -1,5 +1,16 @@
 
-# Summary
+# Lighting
+
+## Summary
+
+Lighting solution for workbench. Features include:
+
+- Motion detector for turning lights on (with color animations).
+- Dimmer switch to set lights to comfortable level.
+
+## Parts
+
+TODO
 
 ## References
 
