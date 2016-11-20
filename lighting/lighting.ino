@@ -1,8 +1,9 @@
 
 #define BAUD_RATE 9600
 
-#define LOOP_DELAY_ACTIVE    10
-#define LOOP_DELAY_INACTIVE 500
+#define DELAY_LOOP_ACTIVE    10
+#define DELAY_LOOP_INACTIVE 500
+#define DELAY_ANIMATION    1500
 
 // Motion Sensor
 // Component: HC-SR501
@@ -16,7 +17,7 @@ int dimmerValue = 0;
 
 // Light
 #define PIN_LED 9
-#define LIGHT_ON_MIN_DURATION 3000
+#define LIGHT_ON_MIN_DURATION 5000
 bool motionDetectedPreviously = false;
 bool motionDetected = false;
 
@@ -29,11 +30,16 @@ void setup() {
 }
 
 void loop() {
+  // Update state from input
   updateMotionState();
   updateDimmerState();
-  printState();
-  outputState();
-  delayState();
+
+  // Logging
+  printToSerial();
+  output();
+
+  // Loop delay
+  sleep();
 }
 
 void updateMotionState() {
@@ -60,7 +66,7 @@ void updateDimmerState() {
   dimmerValue = analogRead(PIN_POT);
 }
 
-void printState() {
+void printToSerial() {
   if (motionDetectedPreviously != motionDetected) {
     if (motionDetected) {
       Serial.println("Motion detected! *beep boop*");
@@ -73,7 +79,16 @@ void printState() {
 /**
  * Output state to lights
  */
-void outputState() {
+void output() {
+  if (motionDetectedPreviously != motionDetected) {
+    if (motionDetected) {
+      outputAnimation();
+    }
+  }
+  outputLight();
+}
+
+void outputLight() {
   static int lightValue = 0;
   if (motionDetected) {
     lightValue = map(dimmerValue, 0, 1023, 0, 255);
@@ -83,17 +98,100 @@ void outputState() {
   }
 }
 
+void outputAnimation() {
+  Serial.println("Animation started");
+  static unsigned long startTime;
+  static unsigned long endTime;
+  startTime = millis();
+
+  // calculate fade-to-full delay
+  static int numberOfLoops = 7;
+  static int fadeToFullIncrements = 2;
+  static int fadeToFullMaxValue = 255;
+  static double fadeToFullIterations =
+    (double) fadeToFullMaxValue /
+    fadeToFullIncrements;
+  static double fadeToFullIterationDelay =
+    DELAY_ANIMATION /
+    numberOfLoops /
+    fadeToFullIterations;
+
+  // calculate fade-to-off delay
+  static int fadeToOffIncrements = 2;
+  static int fadeToOffMaxValue = 255;
+  static double fadeToOffIterations =
+    (double) fadeToOffMaxValue /
+    fadeToOffIncrements;
+  static double fadeToOffIterationDelay =
+    DELAY_ANIMATION /
+    numberOfLoops /
+    fadeToOffIterations;
+
+  // calculate fade-to-dimmer delay
+  static int fadeToDimmerIncrements = 2;
+  static double fadeToDimmerIterations;
+  static int lightValue = 0;
+  lightValue = map(dimmerValue, 0, 1023, fadeToDimmerIncrements, 255);
+  fadeToDimmerIterations = (double) lightValue / fadeToDimmerIncrements;
+  static double fadeToDimmerIterationDelay =
+    DELAY_ANIMATION /
+    numberOfLoops /
+    fadeToDimmerIterations;
+
+  // fade to full brightness
+  analogWrite(PIN_LED, 0);
+  for (int i=0; i<=fadeToFullMaxValue; i+=fadeToFullIncrements) {
+    analogWrite(PIN_LED, i);
+    delay(fadeToFullIterationDelay);
+  }
+
+  // fade to off
+  for (int i=fadeToOffMaxValue; i>=0; i-=fadeToOffIncrements) {
+    analogWrite(PIN_LED, i);
+    delay(fadeToOffIterationDelay);
+  }
+
+  // fade to full brightness
+  for (int i=0; i<=fadeToFullMaxValue; i+=fadeToFullIncrements) {
+    analogWrite(PIN_LED, i);
+    delay(fadeToFullIterationDelay);
+  }
+
+  // fade to off
+  for (int i=fadeToOffMaxValue; i>=0; i-=fadeToOffIncrements) {
+    analogWrite(PIN_LED, i);
+    delay(fadeToOffIterationDelay);
+  }
+
+  // fade to full brightness
+  for (int i=0; i<=fadeToFullMaxValue; i+=fadeToFullIncrements) {
+    analogWrite(PIN_LED, i);
+    delay(fadeToFullIterationDelay);
+  }
+
+  // fade to off
+  for (int i=fadeToOffMaxValue; i>=0; i-=fadeToOffIncrements) {
+    analogWrite(PIN_LED, i);
+    delay(fadeToOffIterationDelay);
+  }
+
+  // fade to dimmer value
+  for (int i=0; i<=lightValue; i+=fadeToDimmerIncrements) {
+    analogWrite(PIN_LED, i);
+    delay(fadeToDimmerIterationDelay);
+  }
+
+  endTime = millis();
+  Serial.println("Animation end in " + String(endTime - startTime) + "ms");
+}
+
 /**
  * Delay application depending on state.
  */
-void delayState() {
+void sleep() {
   if (motionDetected) {
-    delay(LOOP_DELAY_ACTIVE);
+    delay(DELAY_LOOP_ACTIVE);
   } else {
-    delay(LOOP_DELAY_INACTIVE);
+    delay(DELAY_LOOP_INACTIVE);
   }
 }
-
-
-
-
