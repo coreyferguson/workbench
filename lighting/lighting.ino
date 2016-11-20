@@ -9,7 +9,6 @@
 // PIR = Passive Infrared sensor
 // Digital output
 #define PIN_PIR  2
-unsigned int lastMotionDetectionMs = 0;
 
 // Dimmer
 #define PIN_POT 0
@@ -17,8 +16,9 @@ int dimmerValue = 0;
 
 // Light
 #define PIN_LED 9
-#define LIGHT_ON_MIN_DURATION 300000 // 5 minutes
-bool lightOn = false;
+#define LIGHT_ON_MIN_DURATION 3000
+bool motionDetectedPreviously = false;
+bool motionDetected = false;
 
 void setup() {
   pinMode(PIN_PIR, INPUT);
@@ -29,41 +29,45 @@ void setup() {
 }
 
 void loop() {
-  getMotionValue();
-  getDimmerValue();
+  updateMotionState();
+  updateDimmerState();
+  printState();
   outputState();
   delayState();
 }
 
-void getMotionValue() {
+void updateMotionState() {
   static int pirValue;
   static int duration = 0;
+  static unsigned int lastMotionDetectionMs = 0;
 
+  motionDetectedPreviously = motionDetected;
+
+  // update motion state based on sensor value
   pirValue = digitalRead(PIN_PIR);
-
-  // turn light off
-  if (lightOn && pirValue == LOW) {
+  if (motionDetected && pirValue == LOW) {
     duration = abs(millis() - lastMotionDetectionMs);
     if (duration > LIGHT_ON_MIN_DURATION) {
-      lightOn = false;
-      Serial.println("Lights out.");
+      motionDetected = false;
     }
-  }
-
-  // turn light on
-  else if (pirValue == HIGH) {
+  } else if (pirValue == HIGH) {
     lastMotionDetectionMs = millis();
-    if (!lightOn) {
-      lightOn = true;
-      Serial.println("Motion detected! *beep boop*");
-
-    }
+    motionDetected = true;
   }
-
 }
 
-void getDimmerValue() {
+void updateDimmerState() {
   dimmerValue = analogRead(PIN_POT);
+}
+
+void printState() {
+  if (motionDetectedPreviously != motionDetected) {
+    if (motionDetected) {
+      Serial.println("Motion detected! *beep boop*");
+    } else {
+      Serial.println("Waiting for movement...");
+    }
+  }
 }
 
 /**
@@ -71,7 +75,7 @@ void getDimmerValue() {
  */
 void outputState() {
   static int lightValue = 0;
-  if (lightOn) {
+  if (motionDetected) {
     lightValue = map(dimmerValue, 0, 1023, 0, 255);
     analogWrite(PIN_LED, lightValue);
   } else {
@@ -83,13 +87,12 @@ void outputState() {
  * Delay application depending on state.
  */
 void delayState() {
-  if (lightOn) {
+  if (motionDetected) {
     delay(LOOP_DELAY_ACTIVE);
   } else {
     delay(LOOP_DELAY_INACTIVE);
   }
 }
-
 
 
 
