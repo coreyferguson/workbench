@@ -17,7 +17,7 @@ int dimmerValue = 0;
 
 // Light
 #define PIN_LED 9
-#define LIGHT_ON_MIN_DURATION 5000
+#define LIGHT_ON_MINIMUM_DURATION 600000 // 10 minutes
 bool motionDetectedPreviously = false;
 bool motionDetected = false;
 
@@ -53,7 +53,7 @@ void updateMotionState() {
   pirValue = digitalRead(PIN_PIR);
   if (motionDetected && pirValue == LOW) {
     duration = abs(millis() - lastMotionDetectionMs);
-    if (duration > LIGHT_ON_MIN_DURATION) {
+    if (duration > LIGHT_ON_MINIMUM_DURATION) {
       motionDetected = false;
     }
   } else if (pirValue == HIGH) {
