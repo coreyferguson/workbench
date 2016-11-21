@@ -85,7 +85,16 @@ void output() {
       outputAnimation();
     }
   }
-  outputLight();
+
+  // "party mode" when dimmer turned all the way up
+  if (dimmerValue == 1023) {
+    outputAnimation();
+  }
+
+  // normal behavior
+  else {
+    outputLight();
+  }
 }
 
 void outputLight() {
@@ -99,7 +108,6 @@ void outputLight() {
 }
 
 void outputAnimation() {
-  Serial.println("Animation started");
   static unsigned long startTime;
   static unsigned long endTime;
   startTime = millis();
@@ -182,7 +190,6 @@ void outputAnimation() {
   }
 
   endTime = millis();
-  Serial.println("Animation end in " + String(endTime - startTime) + "ms");
 }
 
 /**
