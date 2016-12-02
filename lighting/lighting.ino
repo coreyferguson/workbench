@@ -1,3 +1,5 @@
+#include <Adafruit_NeoPixel.h>
+
 
 #define BAUD_RATE 9600
 
@@ -16,14 +18,19 @@
 int dimmerValue = 0;
 
 // Light
-#define PIN_LED 9
-#define LIGHT_ON_MINIMUM_DURATION 600000 // 10 minutes
+#define PIN_LED 6
+#define LIGHT_ON_MINIMUM_DURATION 300000 // 5 minutes
 bool motionDetectedPreviously = false;
 bool motionDetected = false;
+#define NUM_LEDS_ON_IN_ANIMATION 15
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN_LED, NEO_GRBW + NEO_KHZ800);
+static uint32_t color = strip.Color(255,0,0);
 
 void setup() {
   pinMode(PIN_PIR, INPUT);
-  pinMode(PIN_LED, OUTPUT);
+
+  strip.begin();
+  strip.show(); // Initialize all pixels to 'off'
 
   Serial.begin(BAUD_RATE);
   Serial.println("setup() complete");
@@ -99,97 +106,88 @@ void output() {
 
 void outputLight() {
   static int lightValue = 0;
+  static uint32_t color;
   if (motionDetected) {
     lightValue = map(dimmerValue, 0, 1023, 0, 255);
-    analogWrite(PIN_LED, lightValue);
+    color = strip.Color(lightValue, lightValue, lightValue);
   } else {
-    digitalWrite(PIN_LED, LOW);
+    color = strip.Color(0,0,0);
   }
+  for (int i=0; i<strip.numPixels(); i++) {
+    strip.setPixelColor(i, color);
+  }
+  strip.show();
 }
 
 void outputAnimation() {
-  static unsigned long startTime;
-  static unsigned long endTime;
-  startTime = millis();
 
-  // calculate fade-to-full delay
-  static int numberOfLoops = 7;
-  static int fadeToFullIncrements = 2;
-  static int fadeToFullMaxValue = 255;
-  static double fadeToFullIterations =
-    (double) fadeToFullMaxValue /
-    fadeToFullIncrements;
-  static double fadeToFullIterationDelay =
-    DELAY_ANIMATION /
-    numberOfLoops /
-    fadeToFullIterations;
+  static int wait = 10;
+  static uint32_t white = strip.Color(255, 255, 255);
+  static uint32_t black = strip.Color(0, 0, 0);
 
-  // calculate fade-to-off delay
-  static int fadeToOffIncrements = 2;
-  static int fadeToOffMaxValue = 255;
-  static double fadeToOffIterations =
-    (double) fadeToOffMaxValue /
-    fadeToOffIncrements;
-  static double fadeToOffIterationDelay =
-    DELAY_ANIMATION /
-    numberOfLoops /
-    fadeToOffIterations;
-
-  // calculate fade-to-dimmer delay
-  static int fadeToDimmerIncrements = 2;
-  static double fadeToDimmerIterations;
-  static int lightValue = 0;
-  lightValue = map(dimmerValue, 0, 1023, fadeToDimmerIncrements, 255);
-  fadeToDimmerIterations = (double) lightValue / fadeToDimmerIncrements;
-  static double fadeToDimmerIterationDelay =
-    DELAY_ANIMATION /
-    numberOfLoops /
-    fadeToDimmerIterations;
-
-  // fade to full brightness
-  analogWrite(PIN_LED, 0);
-  for (int i=0; i<=fadeToFullMaxValue; i+=fadeToFullIncrements) {
-    analogWrite(PIN_LED, i);
-    delay(fadeToFullIterationDelay);
+  // initialize
+  for (int i=0; i<NUM_LEDS_ON_IN_ANIMATION; i++) {
+    strip.setPixelColor(i, color);
   }
-
-  // fade to off
-  for (int i=fadeToOffMaxValue; i>=0; i-=fadeToOffIncrements) {
-    analogWrite(PIN_LED, i);
-    delay(fadeToOffIterationDelay);
+  // cycle forward
+  for (int i=NUM_LEDS_ON_IN_ANIMATION-1; i<strip.numPixels(); i++) {
+    iterate();
+    strip.setPixelColor(i, color);
+    for (int j=i; j>=i-NUM_LEDS_ON_IN_ANIMATION; j--) {
+      strip.setPixelColor(j, color);
+    }
+    if (i >= NUM_LEDS_ON_IN_ANIMATION) {
+      strip.setPixelColor(i-NUM_LEDS_ON_IN_ANIMATION, black);
+    }
+    strip.show();
+    delay(wait);
   }
-
-  // fade to full brightness
-  for (int i=0; i<=fadeToFullMaxValue; i+=fadeToFullIncrements) {
-    analogWrite(PIN_LED, i);
-    delay(fadeToFullIterationDelay);
+  // cycle back
+  for (int i=strip.numPixels()-NUM_LEDS_ON_IN_ANIMATION-1; i>=0; i--) {
+    iterate();
+    strip.setPixelColor(i, color);
+    for (int j=i; j<=i+NUM_LEDS_ON_IN_ANIMATION; j++) {
+      strip.setPixelColor(j, color);
+    }
+    if (i < strip.numPixels()-NUM_LEDS_ON_IN_ANIMATION) {
+      strip.setPixelColor(i+NUM_LEDS_ON_IN_ANIMATION, black);
+    }
+    strip.show();
+    delay(wait);
   }
-
-  // fade to off
-  for (int i=fadeToOffMaxValue; i>=0; i-=fadeToOffIncrements) {
-    analogWrite(PIN_LED, i);
-    delay(fadeToOffIterationDelay);
+  // cycle forward
+  for (int i=NUM_LEDS_ON_IN_ANIMATION; i<strip.numPixels(); i++) {
+    iterate();
+    strip.setPixelColor(i, color);
+    for (int j=i; j>=i-NUM_LEDS_ON_IN_ANIMATION; j--) {
+      strip.setPixelColor(j, color);
+    }
+    if (i >= NUM_LEDS_ON_IN_ANIMATION) {
+      strip.setPixelColor(i-NUM_LEDS_ON_IN_ANIMATION, black);
+    }
+    strip.show();
+    delay(wait);
   }
-
-  // fade to full brightness
-  for (int i=0; i<=fadeToFullMaxValue; i+=fadeToFullIncrements) {
-    analogWrite(PIN_LED, i);
-    delay(fadeToFullIterationDelay);
+  // cycle back
+  for (int i=strip.numPixels()-NUM_LEDS_ON_IN_ANIMATION-1; i>=0; i--) {
+    iterate();
+    strip.setPixelColor(i, color);
+    for (int j=i; j<=i+NUM_LEDS_ON_IN_ANIMATION; j++) {
+      strip.setPixelColor(j, color);
+    }
+    if (i < strip.numPixels()-NUM_LEDS_ON_IN_ANIMATION) {
+      strip.setPixelColor(i+NUM_LEDS_ON_IN_ANIMATION, black);
+    }
+    strip.show();
+    delay(wait);
   }
+  delay(50);
 
-  // fade to off
-  for (int i=fadeToOffMaxValue; i>=0; i-=fadeToOffIncrements) {
-    analogWrite(PIN_LED, i);
-    delay(fadeToOffIterationDelay);
+  // turn off
+  for (int i=0; i<strip.numPixels(); i++) {
+    strip.setPixelColor(i, black);
   }
-
-  // fade to dimmer value
-  for (int i=0; i<=lightValue; i+=fadeToDimmerIncrements) {
-    analogWrite(PIN_LED, i);
-    delay(fadeToDimmerIterationDelay);
-  }
-
-  endTime = millis();
+  strip.show();
 }
 
 /**
@@ -202,3 +200,37 @@ void sleep() {
     delay(DELAY_LOOP_INACTIVE);
   }
 }
+
+void iterate() {
+  static int iterationsInAnimation = (strip.numPixels()-NUM_LEDS_ON_IN_ANIMATION)*4;
+  static int count = 0;
+
+  static int red = 255;
+  static int green = 0;
+  static int blue = 0;
+  static int colorRange;
+  colorRange = map(count, 0, iterationsInAnimation, 0, 1530);
+
+  if (colorRange>=0 && colorRange<=255) {
+    green = colorRange;
+  } else if (colorRange>=256 && colorRange<=511) {
+    red = 511-colorRange;
+  } else if (colorRange>=512 && colorRange<=767) {
+    blue = colorRange-512;
+  } else if (colorRange>=768 && colorRange<=1023) {
+    green = 1023-colorRange;
+  } else if (colorRange>=1024 && colorRange<=1279) {
+    red = colorRange-1024;
+  } else if (colorRange>=1280 && colorRange<=1530) {
+    blue = 1530-colorRange;
+  }
+
+  color = strip.Color(red, green, blue);
+
+  if (count == iterationsInAnimation) {
+    count = 0;
+  } else {
+    count = count + 1;
+  }
+}
+
