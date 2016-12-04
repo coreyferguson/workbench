@@ -5,7 +5,6 @@
 
 #define DELAY_LOOP_ACTIVE    10
 #define DELAY_LOOP_INACTIVE 500
-#define DELAY_ANIMATION    1500
 
 // Motion Sensor
 // Component: HC-SR501
@@ -19,11 +18,12 @@ int dimmerValue = 0;
 
 // Light
 #define PIN_LED 6
-bool motionDetectedPreviously = false;
-bool motionDetected = false;
+#define FADE_ON_SECONDS 3
 #define NUM_LEDS_ON_IN_ANIMATION 15
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN_LED, NEO_GRBW + NEO_KHZ800);
 static uint32_t color = strip.Color(255,0,0);
+bool motionDetectedPreviously = false;
+bool motionDetected = false;
 
 void setup() {
   pinMode(PIN_PIR, INPUT);
@@ -74,6 +74,9 @@ void output() {
   if (motionDetectedPreviously != motionDetected) {
     if (motionDetected) {
       outputAnimation();
+      if (dimmerValue != 1023) {
+        fadeOn();
+      }
     }
   }
 
@@ -85,6 +88,20 @@ void output() {
   // normal behavior
   else {
     outputLight();
+  }
+}
+
+void fadeOn() {
+  static int wait = FADE_ON_SECONDS * 1000 / 255;
+  static int lightValue = 0;
+  static uint32_t color;
+  lightValue = map(dimmerValue, 0, 1023, 0, 255);
+  for (int i=0; i<lightValue; i++) {
+    for (int p=0; p<strip.numPixels(); p++) {
+      strip.setPixelColor(p, strip.Color(i,i,i));
+    }
+    strip.show();
+    delay(wait);
   }
 }
 
@@ -217,6 +234,4 @@ void iterate() {
     count = count + 1;
   }
 }
-
-
 
