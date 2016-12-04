@@ -19,7 +19,6 @@ int dimmerValue = 0;
 
 // Light
 #define PIN_LED 6
-#define LIGHT_ON_MINIMUM_DURATION 300000 // 5 minutes
 bool motionDetectedPreviously = false;
 bool motionDetected = false;
 #define NUM_LEDS_ON_IN_ANIMATION 15
@@ -50,23 +49,8 @@ void loop() {
 }
 
 void updateMotionState() {
-  static int pirValue;
-  static int duration = 0;
-  static unsigned int lastMotionDetectionMs = 0;
-
   motionDetectedPreviously = motionDetected;
-
-  // update motion state based on sensor value
-  pirValue = digitalRead(PIN_PIR);
-  if (motionDetected && pirValue == LOW) {
-    duration = abs(millis() - lastMotionDetectionMs);
-    if (duration > LIGHT_ON_MINIMUM_DURATION) {
-      motionDetected = false;
-    }
-  } else if (pirValue == HIGH) {
-    lastMotionDetectionMs = millis();
-    motionDetected = true;
-  }
+  motionDetected = digitalRead(PIN_PIR);
 }
 
 void updateDimmerState() {
@@ -233,4 +217,6 @@ void iterate() {
     count = count + 1;
   }
 }
+
+
 
