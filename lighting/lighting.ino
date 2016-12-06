@@ -1,6 +1,5 @@
 #include <Adafruit_NeoPixel.h>
 
-
 #define BAUD_RATE 9600
 
 #define DELAY_LOOP_ACTIVE    10
