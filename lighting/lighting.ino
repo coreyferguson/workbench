@@ -57,11 +57,19 @@ void updateDimmerState() {
 }
 
 void printToSerial() {
+  static unsigned long startTime;
+  static unsigned long endTime;
+  static unsigned long duration;
+
   if (motionDetectedPreviously != motionDetected) {
     if (motionDetected) {
       Serial.println("Motion detected! *beep boop*");
+      startTime = millis();
     } else {
       Serial.println("Waiting for movement...");
+      endTime = millis();
+      duration = (endTime - startTime) / 1000;
+      Serial.println("Active for " + String(duration, DEC) + " seconds");
     }
   }
 }
@@ -233,4 +241,5 @@ void iterate() {
     count = count + 1;
   }
 }
+
 
