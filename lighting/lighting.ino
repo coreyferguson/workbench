@@ -6,7 +6,7 @@
 // Component: HC-SR501
 // PIR = Passive Infrared sensor
 // Digital output
-#define PIN_PIR  2
+#define PIN_PIR A2
 
 // Light
 #define PIN_LED 6
@@ -70,4 +70,3 @@ void output() {
   }
   strip.show();
 }
-
