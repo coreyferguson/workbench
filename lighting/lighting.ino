@@ -14,6 +14,12 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN_LED, NEO_GRBW + NEO_KHZ800);
 uint32_t white = strip.Color(255, 255, 255);
 uint32_t black = strip.Color(0, 0, 0);
 
+// State
+bool pirActive = false; // current pir status
+bool pirWasActive = false; // pir status on last program loop
+bool pirActiveThisIteration = false; // pir activated on this program loop
+bool pirInactiveThisIteration = false; // pir inactivated on this program loop
+
 void setup() {
   pinMode(PIN_PIR, INPUT);
 
@@ -25,24 +31,29 @@ void setup() {
 }
 
 void loop() {
-  static bool pirActive;
-  static bool pirWasActive;
-  pirWasActive = pirActive;
-  pirActive = digitalRead(PIN_PIR);
+  updateMotionState();
 
-  Serial.println(pirActive, DEC);
-
-  if (!pirWasActive && pirActive) {
-    for (int i=0; i<strip.numPixels(); i++) {
-      strip.setPixelColor(i, white);
-    }
-    strip.show();
-  } else if (pirWasActive && !pirActive) {
-    for (int i=0; i<strip.numPixels(); i++) {
-      strip.setPixelColor(i, black);
-    }
-    strip.show();
+  if (pirActiveThisIteration) {
+    Serial.println("Activated");
+  } else if (pirInactiveThisIteration) {
+    Serial.println("Inactived");
   }
 
   delay(50);
+}
+
+void updateMotionState() {
+  // PIR
+  pirWasActive = pirActive;
+  pirActive = digitalRead(PIN_PIR);
+  if (pirActive && !pirWasActive) {
+    pirActiveThisIteration = true;
+    pirInactiveThisIteration = false;
+  } else if (!pirActive && pirWasActive) {
+    pirActiveThisIteration = false;
+    pirInactiveThisIteration = true;
+  } else {
+    pirActiveThisIteration = false;
+    pirInactiveThisIteration = false;
+  }
 }
