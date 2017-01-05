@@ -21,8 +21,6 @@ bool motionDetectedPreviously = false;
 bool motionDetected = false;
 
 void setup() {
-  pinMode(PIN_PIR, INPUT);
-
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
 
@@ -31,20 +29,17 @@ void setup() {
 }
 
 void loop() {
-  // Update state from input
-  updateMotionState();
-
   // Logging
   printToSerial();
-  output();
+
+  outputAnimation();
+  fadeOn();
+  outputLight();
 
   // Loop delay
-  sleep();
-}
+  delay(5000);
 
-void updateMotionState() {
-  motionDetectedPreviously = motionDetected;
-  motionDetected = digitalRead(PIN_PIR);
+  Serial.println("tick");
 }
 
 void printToSerial() {
@@ -69,17 +64,7 @@ void printToSerial() {
  * Output state to lights
  */
 void output() {
-  if (motionDetectedPreviously != motionDetected) {
-    if (motionDetected) {
-      outputAnimation();
-      fadeOn();
-    }
-  }
-
-  // normal behavior
-  else {
-    outputLight();
-  }
+  outputLight();
 }
 
 void fadeOn() {
@@ -96,11 +81,11 @@ void fadeOn() {
 
 void outputLight() {
   static uint32_t color;
-  if (motionDetected) {
+  // if (motionDetected) {
     color = strip.Color(255, 255, 255);
-  } else {
-    color = strip.Color(0,0,0);
-  }
+  // } else {
+  //   color = strip.Color(0,0,0);
+  // }
   for (int i=0; i<strip.numPixels(); i++) {
     strip.setPixelColor(i, color);
   }
@@ -221,4 +206,6 @@ void sleep() {
     delay(DELAY_LOOP_INACTIVE);
   }
 }
+
+
 
