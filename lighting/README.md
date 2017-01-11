@@ -14,6 +14,7 @@ Type          | Part
 Light         | Adafruit [NeoPixel][] LED Strip
 Power         | [Power Supply][]
 Power         | Breadboard friendly 2.1mm [DC barrel jack][]
+M. Controller | [Arduino Pro Mini 3.3V][] 
 
 ### [Power Supply][]
 
@@ -37,3 +38,4 @@ Power         | Breadboard friendly 2.1mm [DC barrel jack][]
 [NeoPixel Capacitor Wiring]: https://forums.adafruit.com/viewtopic.php?f=47&t=50998&p=257385&hilit=prevents+onrush+current+damaging+pixels#p257385
 [NeoPixel RGBW Strip Wiring]: https://forums.adafruit.com/viewtopic.php?f=47&t=96399&p=483705&hilit=neopixel+rgbw+data+4+wires#wrap
 [Power Supply]: https://www.adafruit.com/products/276
+[Arduino Pro Mini 3.3V]: https://www.arduino.cc/en/Main/ArduinoBoardProMini
